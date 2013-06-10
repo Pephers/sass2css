@@ -2,6 +2,7 @@ import sublime
 import sublime_plugin
 import os
 import re
+import subprocess
 
 
 class SassToCssCommand(sublime_plugin.TextCommand):
@@ -24,9 +25,11 @@ class SassToCssCommand(sublime_plugin.TextCommand):
             return
         output_filename = re.sub('\.s(c|a)ss$', '.css', input_filename)
         # run the sass binary to compile
-        if os.system('sass -t expanded ' + self.extra_params + input_filename + ' ' + output_filename) is not 0:
-            sublime.error_message('The file "' + input_filename + '" could not be compiled.\n\nThis may be because sass binary could was not found on your system.')
-            return
+        cmd = ['sass', '-t', 'expanded', input_filename, output_filename]
+        try:
+            process = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        except OSError as err:
+            return sublime.error_message('The file "' + input_filename + '" could not be compiled.\n\nThis may be because sass binary could not be found on your system.')
         sublime.status_message('Succesfully compiled ' + output_filename)
 
 
